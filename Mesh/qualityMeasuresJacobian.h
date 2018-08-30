@@ -17,7 +17,6 @@ class MElement;
 
 namespace jacobianBasedQuality {
 
-<<<<<<< HEAD
   void minMaxJacobianDeterminant(MElement *el, double &min, double &max,
                                  const fullMatrix<double> *normals = NULL);
   double minIGEMeasure(MElement *el, bool knownValid = false,
