@@ -37,8 +37,6 @@ class BRepBuilderAPI_GTransform;
 class OCCMeshAttributesRTree;
 
 class OCC_Internals {
-public:
-
 private:
   // have the internals changed since the last synchronisation?
   bool _changed;
