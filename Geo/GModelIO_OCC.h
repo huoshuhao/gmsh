@@ -14,6 +14,8 @@
 
 class ExtrudeParams;
 
+enum class BooleanOperator { Union, Intersection, Difference, Section, Fragments };
+
 #if defined(HAVE_OCC)
 
 #include <TopoDS_Shape.hxx>
@@ -36,7 +38,6 @@ class OCCMeshAttributesRTree;
 
 class OCC_Internals {
 public:
-  enum BooleanOperator { Union, Intersection, Difference, Section, Fragments };
 
 private:
   // have the internals changed since the last synchronisation?
@@ -388,7 +389,7 @@ public:
                     std::vector<int> &triangles);
 };
 
-#else
+#else // no OCC >= 6.9
 
 class OCC_Internals {
 private:
@@ -399,8 +400,7 @@ private:
   }
 
 public:
-  enum BooleanOperator { Union, Intersection, Difference, Section, Fragments };
-  OCC_Internals() {}
+  OCC_Internals() = default;
   bool getChanged() const { return false; }
   void reset() {}
   void setMaxTag(int dim, int val) {}
@@ -717,5 +717,5 @@ public:
   }
 };
 
-#endif
-#endif
+#endif // no OCC >= 6.9
+#endif // has OCC

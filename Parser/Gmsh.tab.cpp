@@ -6332,7 +6332,7 @@ yyparse ()
 #endif
 #endif
 {
-  
+
   int yystate;
   int yyn;
   int yyresult;
@@ -11031,27 +11031,27 @@ yyreduce:
 
   case 319:
 #line 4075 "Gmsh.y"
-    { (yyval.i) = OCC_Internals::Union; ;}
+    { (yyval.i) = static_cast<int>(BooleanOperator::Union); ;}
     break;
 
   case 320:
 #line 4076 "Gmsh.y"
-    { (yyval.i) = OCC_Internals::Intersection; ;}
+    { (yyval.i) = static_cast<int>(BooleanOperator::Intersection); ;}
     break;
 
   case 321:
 #line 4077 "Gmsh.y"
-    { (yyval.i) = OCC_Internals::Difference; ;}
+    { (yyval.i) = static_cast<int>(BooleanOperator::Difference); ;}
     break;
 
   case 322:
 #line 4078 "Gmsh.y"
-    { (yyval.i) = OCC_Internals::Section; ;}
+    { (yyval.i) = static_cast<int>(BooleanOperator::Section); ;}
     break;
 
   case 323:
 #line 4079 "Gmsh.y"
-    { (yyval.i) = OCC_Internals::Fragments; ;}
+    { (yyval.i) = static_cast<int>(BooleanOperator::Fragments); ;}
     break;
 
   case 324:
@@ -11093,7 +11093,7 @@ yyreduce:
         // we always delete recursively. Let us know if you have examples where
         // having the choice would be interesting
         r = GModel::current()->getOCCInternals()->booleanOperator
-          (-1, (OCC_Internals::BooleanOperator)(yyvsp[(1) - (9)].i), object, tool, out, outMap, (yyvsp[(4) - (9)].i), (yyvsp[(8) - (9)].i));
+          (-1, (BooleanOperator)(yyvsp[(1) - (9)].i), object, tool, out, outMap, (yyvsp[(4) - (9)].i), (yyvsp[(8) - (9)].i));
         VectorOfPairs2ListOfShapes(out, (yyval.l));
       }
       else{
@@ -11137,7 +11137,7 @@ yyreduce:
         // we always delete recursively. Let us know if you have examples where
         // having the choice would be interesting
         r = GModel::current()->getOCCInternals()->booleanOperator
-          ((int)(yyvsp[(3) - (14)].d), (OCC_Internals::BooleanOperator)(yyvsp[(1) - (14)].i), object, tool, out, outMap, (yyvsp[(8) - (14)].i), (yyvsp[(12) - (14)].i));
+          ((int)(yyvsp[(3) - (14)].d), (BooleanOperator)(yyvsp[(1) - (14)].i), object, tool, out, outMap, (yyvsp[(8) - (14)].i), (yyvsp[(12) - (14)].i));
       }
       if(!r) yymsg(0, "Could not apply boolean operator");
       List_Delete((yyvsp[(7) - (14)].l));
@@ -15175,4 +15175,3 @@ List_T * treat_Struct_FullName_dot_tSTRING_ListOfString
   if (flag_tSTRING_alloc) Free(c3);
   return out;
 }
-

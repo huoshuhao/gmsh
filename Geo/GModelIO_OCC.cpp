@@ -2483,7 +2483,7 @@ bool OCC_Internals::booleanOperator(
   std::vector<bool> mapDeleted;
   try {
     switch(op) {
-    case OCC_Internals::Union: {
+    case BooleanOperator::Union: {
       BRepAlgoAPI_Fuse fuse;
       fuse.SetRunParallel(parallel);
       fuse.SetArguments(objectShapes);
@@ -2510,7 +2510,7 @@ bool OCC_Internals::booleanOperator(
         mapGenerated.push_back(fuse.Generated(it2.Value()));
       }
     } break;
-    case OCC_Internals::Intersection: {
+    case BooleanOperator::Intersection: {
       BRepAlgoAPI_Common common;
       common.SetRunParallel(parallel);
       common.SetArguments(objectShapes);
@@ -2538,7 +2538,7 @@ bool OCC_Internals::booleanOperator(
       }
     } break;
 
-    case OCC_Internals::Difference: {
+    case BooleanOperator::Difference: {
       BRepAlgoAPI_Cut cut;
       cut.SetRunParallel(parallel);
       cut.SetArguments(objectShapes);
@@ -2566,7 +2566,7 @@ bool OCC_Internals::booleanOperator(
       }
     } break;
 
-    case OCC_Internals::Fragments:
+    case BooleanOperator::Fragments:
     default: {
       BRepAlgoAPI_BuilderAlgo fragments;
       fragments.SetRunParallel(parallel);
@@ -2702,7 +2702,7 @@ bool OCC_Internals::booleanUnion(
   std::vector<std::vector<std::pair<int, int> > > &outDimTagsMap,
   bool removeObject, bool removeTool)
 {
-  return booleanOperator(tag, OCC_Internals::Union, objectDimTags, toolDimTags,
+  return booleanOperator(tag, BooleanOperator::Union, objectDimTags, toolDimTags,
                          outDimTags, outDimTagsMap, removeObject, removeTool);
 }
 
@@ -2713,7 +2713,7 @@ bool OCC_Internals::booleanIntersection(
   std::vector<std::vector<std::pair<int, int> > > &outDimTagsMap,
   bool removeObject, bool removeTool)
 {
-  return booleanOperator(tag, OCC_Internals::Intersection, objectDimTags,
+  return booleanOperator(tag, BooleanOperator::Intersection, objectDimTags,
                          toolDimTags, outDimTags, outDimTagsMap, removeObject,
                          removeTool);
 }
@@ -2725,7 +2725,7 @@ bool OCC_Internals::booleanDifference(
   std::vector<std::vector<std::pair<int, int> > > &outDimTagsMap,
   bool removeObject, bool removeTool)
 {
-  return booleanOperator(tag, OCC_Internals::Difference, objectDimTags,
+  return booleanOperator(tag, BooleanOperator::Difference, objectDimTags,
                          toolDimTags, outDimTags, outDimTagsMap, removeObject,
                          removeTool);
 }
@@ -2737,7 +2737,7 @@ bool OCC_Internals::booleanFragments(
   std::vector<std::vector<std::pair<int, int> > > &outDimTagsMap,
   bool removeObject, bool removeTool)
 {
-  return booleanOperator(tag, OCC_Internals::Fragments, objectDimTags,
+  return booleanOperator(tag, BooleanOperator::Fragments, objectDimTags,
                          toolDimTags, outDimTags, outDimTagsMap, removeObject,
                          removeTool);
 }
@@ -3041,7 +3041,6 @@ bool OCC_Internals::importShapes(const std::string &fileName,
         }
       }
 
-      /*
       // List out the available colours in the STEP File as Colour Names
       TDF_LabelSequence all_colours;
       step_colour_contents->GetColors(all_colours);
@@ -3051,11 +3050,10 @@ bool OCC_Internals::importShapes(const std::string &fileName,
         std::stringstream col_rgb;
         step_colour_contents->GetColor(all_colours.Value(i),col);
         col_rgb << " : (" << col.Red() << "," << col.Green() << "," <<
-      col.Blue() << ")"; Msg::Info("Colour [", i, "] = ",
-      col.StringName(col.Name()), col_rgb.str().c_str());
+        col.Blue() << ")"; Msg::Info("Colour [", i, "] = ",
+        col.StringName(col.Name()), col_rgb.str().c_str());
       }
       // For the STEP File Reader in OCC, the 1st Shape contains the entire
-      */
       // compound geometry as one shape
       result = step_shape_contents->GetShape(step_shapes.Value(1));
 #else
