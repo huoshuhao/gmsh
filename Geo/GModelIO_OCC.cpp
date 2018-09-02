@@ -3029,6 +3029,7 @@ bool OCC_Internals::importShapes(const std::string &fileName,
         return false;
       }
       reader.Transfer(step_doc);
+
       // Read in the shapes, colours and materials in the STEP File
       Handle_XCAFDoc_ShapeTool step_shape_contents =
         XCAFDoc_DocumentTool::ShapeTool(step_doc->Main());
@@ -3037,7 +3038,6 @@ bool OCC_Internals::importShapes(const std::string &fileName,
       Handle_XCAFDoc_MaterialTool step_material_contents =
         XCAFDoc_DocumentTool::MaterialTool(step_doc->Main());
 
-      // read in shapes
       TDF_LabelSequence step_shapes;
       step_shape_contents->GetShapes(step_shapes);
       for(int i = 1; i <= step_shapes.Length(); ++i) {
@@ -3051,7 +3051,6 @@ bool OCC_Internals::importShapes(const std::string &fileName,
         }
       }
 
-      // List out the available colours in the STEP File as Colour Names
       TDF_LabelSequence all_colours;
       step_colour_contents->GetColors(all_colours);
       Msg::Info("Number of colours in STEP File: %d", all_colours.Length());
@@ -3064,6 +3063,27 @@ bool OCC_Internals::importShapes(const std::string &fileName,
         Msg::Info("Colour [ %d ] = %s %s", i,
         col.StringName(col.Name()), col_rgb.str().c_str());
       }
+
+      // handles to extract material data
+      Handle(TCollection_HAsciiString) mat_name;
+      Handle(TCollection_HAsciiString) mat_description;
+      Standard_Real mat_density;
+      Handle(TCollection_HAsciiString) mat_dens_name;
+      Handle(TCollection_HAsciiString) mat_dens_val_type;
+
+      TDF_LabelSequence all_materials;
+      step_material_contents->GetMaterialLabels(all_materials);
+      Msg::Info("Number of materials in STEP File: %d", all_materials.Length());
+      for(int i = 1; i <= all_materials.Length(); ++i){
+        // std::stringstream mat_info;
+        step_material_contents->GetMaterial(all_materials(i), mat_name,
+          mat_description, mat_density, mat_dens_name, mat_dens_val_type);
+        std::string s1 = mat_name->ToCString();
+        // std::string s1 = mat_name->Get().ToCString();
+        Msg::Info("material name: %s", s1.c_str());
+      }
+
+
       // For the STEP File Reader in OCC, the 1st Shape contains the entire
       // compound geometry as one shape
       result = step_shape_contents->GetShape(step_shapes.Value(1));
