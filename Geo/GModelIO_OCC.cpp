@@ -106,6 +106,7 @@
 #include <XCAFDoc_ShapeTool.hxx>
 #include <XCAFDoc_DocumentTool.hxx>
 #include <XCAFDoc_ColorTool.hxx>
+#include <XCAFDoc_MaterialTool.hxx>
 #include <STEPCAFControl_Reader.hxx>
 #include <IGESCAFControl_Reader.hxx>
 #include <TDataStd_Name.hxx>
@@ -3023,34 +3024,39 @@ bool OCC_Internals::importShapes(const std::string &fileName,
         return false;
       }
       reader.Transfer(step_doc);
-      // Read in the shape(s) and the colours present in the STEP File
+      // Read in the shapes, colours and materials in the STEP File
       Handle_XCAFDoc_ShapeTool step_shape_contents =
         XCAFDoc_DocumentTool::ShapeTool(step_doc->Main());
       Handle_XCAFDoc_ColorTool step_colour_contents =
         XCAFDoc_DocumentTool::ColorTool(step_doc->Main());
+      Handle_XCAFDoc_MaterialTool step_material_contents =
+        XCAFDoc_DocumentTool::MaterialTool(step_doc->Main());
+
+      // read in shapes
       TDF_LabelSequence step_shapes;
       step_shape_contents->GetShapes(step_shapes);
-      for(int i = 1; i <= step_shapes.Length(); i++) {
-        printf("step shape %d: \n", i);
+      for(int i = 1; i <= step_shapes.Length(); ++i) {
+        Msg::Info("step shape %d \n", i);
         TDF_Label label = step_shapes.Value(i);
         Handle(TDataStd_Name) N;
         if(label.FindAttribute(TDataStd_Name::GetID(), N)) {
           TCollection_ExtendedString name = N->Get();
           std::string s1 = TCollection_AsciiString(name).ToCString();
-          printf("hey %s\n", s1.c_str());
+          Msg::Info("hey %s\n", s1.c_str());
         }
       }
 
       // List out the available colours in the STEP File as Colour Names
       TDF_LabelSequence all_colours;
       step_colour_contents->GetColors(all_colours);
-      Msg::Info("Number of colours in STEP File: ", all_colours.Length());
-      for(int i = 1; i <= all_colours.Length(); i++){
+      Msg::Info("Number of colours in STEP File: %d", all_colours.Length());
+      for(int i = 1; i <= all_colours.Length(); ++i){
         Quantity_Color col;
         std::stringstream col_rgb;
-        step_colour_contents->GetColor(all_colours.Value(i),col);
+        step_colour_contents->GetColor(all_colours.Value(i), col);
         col_rgb << " : (" << col.Red() << "," << col.Green() << "," <<
-        col.Blue() << ")"; Msg::Info("Colour [", i, "] = ",
+        col.Blue() << ")";
+        Msg::Info("Colour [ %d ] = %s %s", i, 
         col.StringName(col.Name()), col_rgb.str().c_str());
       }
       // For the STEP File Reader in OCC, the 1st Shape contains the entire
