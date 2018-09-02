@@ -11031,27 +11031,32 @@ yyreduce:
 
   case 319:
 #line 4075 "Gmsh.y"
-    { (yyval.i) = static_cast<int>(BooleanOperator::Union); ;}
+// { (yyval.i) = static_cast<int>(BooleanOperator::Union); ;} // TODO C++11
+{ (yyval.i) = OCC_Internals::Union; ;}
     break;
 
   case 320:
 #line 4076 "Gmsh.y"
-    { (yyval.i) = static_cast<int>(BooleanOperator::Intersection); ;}
+// { (yyval.i) = static_cast<int>(BooleanOperator::Intersection); ;} // TODO C++11
+{ (yyval.i) = OCC_Internals::Intersection; ;}
     break;
 
   case 321:
 #line 4077 "Gmsh.y"
-    { (yyval.i) = static_cast<int>(BooleanOperator::Difference); ;}
+// { (yyval.i) = static_cast<int>(BooleanOperator::Difference); ;} // TODO C++11
+{ (yyval.i) = OCC_Internals::Difference; ;}
     break;
 
   case 322:
 #line 4078 "Gmsh.y"
-    { (yyval.i) = static_cast<int>(BooleanOperator::Section); ;}
+// { (yyval.i) = static_cast<int>(BooleanOperator::Section); ;} // TODO C++11
+{ (yyval.i) = OCC_Internals::Section; ;}
     break;
 
   case 323:
 #line 4079 "Gmsh.y"
-    { (yyval.i) = static_cast<int>(BooleanOperator::Fragments); ;}
+// { (yyval.i) = static_cast<int>(BooleanOperator::Fragments); ;} // TODO C++11
+{ (yyval.i) = OCC_Internals::Fragments; ;}
     break;
 
   case 324:
@@ -11092,8 +11097,9 @@ yyreduce:
         // currently we don't distinguish between Delete and Recursive Delete:
         // we always delete recursively. Let us know if you have examples where
         // having the choice would be interesting
+        //TODO C++11 (OCC_Internals::BooleanOperator) -> static_cast<BooleanOperator>
         r = GModel::current()->getOCCInternals()->booleanOperator
-          (-1, (BooleanOperator)(yyvsp[(1) - (9)].i), object, tool, out, outMap, (yyvsp[(4) - (9)].i), (yyvsp[(8) - (9)].i));
+          (-1, (OCC_Internals::BooleanOperator)(yyvsp[(1) - (9)].i), object, tool, out, outMap, (yyvsp[(4) - (9)].i), (yyvsp[(8) - (9)].i));
         VectorOfPairs2ListOfShapes(out, (yyval.l));
       }
       else{
@@ -11136,8 +11142,9 @@ yyreduce:
         // currently we don't distinguish between Delete and Recursive Delete:
         // we always delete recursively. Let us know if you have examples where
         // having the choice would be interesting
+        //TODO C++11 (OCC_Internals::BooleanOperator) -> static_cast<BooleanOperator>
         r = GModel::current()->getOCCInternals()->booleanOperator
-          ((int)(yyvsp[(3) - (14)].d), (BooleanOperator)(yyvsp[(1) - (14)].i), object, tool, out, outMap, (yyvsp[(8) - (14)].i), (yyvsp[(12) - (14)].i));
+          ((int)(yyvsp[(3) - (14)].d), (OCC_Internals::BooleanOperator)(yyvsp[(1) - (14)].i), object, tool, out, outMap, (yyvsp[(8) - (14)].i), (yyvsp[(12) - (14)].i));
       }
       if(!r) yymsg(0, "Could not apply boolean operator");
       List_Delete((yyvsp[(7) - (14)].l));

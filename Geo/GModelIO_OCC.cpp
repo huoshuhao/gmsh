@@ -2484,7 +2484,8 @@ bool OCC_Internals::booleanOperator(
   std::vector<bool> mapDeleted;
   try {
     switch(op) {
-    case BooleanOperator::Union: {
+    // case BooleanOperator::Union: { // TODO C++11
+    case OCC_Internals::Union: {
       BRepAlgoAPI_Fuse fuse;
       fuse.SetRunParallel(parallel);
       fuse.SetArguments(objectShapes);
@@ -2511,7 +2512,9 @@ bool OCC_Internals::booleanOperator(
         mapGenerated.push_back(fuse.Generated(it2.Value()));
       }
     } break;
-    case BooleanOperator::Intersection: {
+
+    // case BooleanOperator::Intersection: { TODO C++11
+    case OCC_Internals::Intersection: {
       BRepAlgoAPI_Common common;
       common.SetRunParallel(parallel);
       common.SetArguments(objectShapes);
@@ -2539,7 +2542,8 @@ bool OCC_Internals::booleanOperator(
       }
     } break;
 
-    case BooleanOperator::Difference: {
+    // case BooleanOperator::Difference: { TODO C++11
+    case OCC_Internals::Difference: {
       BRepAlgoAPI_Cut cut;
       cut.SetRunParallel(parallel);
       cut.SetArguments(objectShapes);
@@ -2567,7 +2571,8 @@ bool OCC_Internals::booleanOperator(
       }
     } break;
 
-    case BooleanOperator::Fragments:
+    // case BooleanOperator::Fragments: TODO C++11
+    case OCC_Internals::Fragments:
     default: {
       BRepAlgoAPI_BuilderAlgo fragments;
       fragments.SetRunParallel(parallel);
@@ -3056,7 +3061,7 @@ bool OCC_Internals::importShapes(const std::string &fileName,
         step_colour_contents->GetColor(all_colours.Value(i), col);
         col_rgb << " : (" << col.Red() << "," << col.Green() << "," <<
         col.Blue() << ")";
-        Msg::Info("Colour [ %d ] = %s %s", i, 
+        Msg::Info("Colour [ %d ] = %s %s", i,
         col.StringName(col.Name()), col_rgb.str().c_str());
       }
       // For the STEP File Reader in OCC, the 1st Shape contains the entire

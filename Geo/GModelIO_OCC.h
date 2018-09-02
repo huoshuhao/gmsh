@@ -14,7 +14,7 @@
 
 class ExtrudeParams;
 
-enum class BooleanOperator { Union, Intersection, Difference, Section, Fragments };
+// TODO C++11 enum class BooleanOperator { Union, Intersection, Difference, Section, Fragments };
 
 #if defined(HAVE_OCC)
 
@@ -37,6 +37,9 @@ class BRepBuilderAPI_GTransform;
 class OCCMeshAttributesRTree;
 
 class OCC_Internals {
+public:
+  enum BooleanOperator { Union, Intersection, Difference, Section, Fragments }; // TODO C++11 remove 
+
 private:
   // have the internals changed since the last synchronisation?
   bool _changed;
@@ -398,7 +401,8 @@ private:
   }
 
 public:
-  OCC_Internals() = default;
+  enum BooleanOperator { Union, Intersection, Difference, Section, Fragments }; // TODO C++11 remove
+  OCC_Internals() {} // TODO C++11 = default;
   bool getChanged() const { return false; }
   void reset() {}
   void setMaxTag(int dim, int val) {}
