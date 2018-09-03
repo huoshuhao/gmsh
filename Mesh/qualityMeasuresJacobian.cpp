@@ -838,6 +838,11 @@ namespace jacobianBasedQuality {
     _bfsDet->subdivideBezCoeff(_coeffsJacDet, subCoeffD);
     _bfsMat->subdivideBezCoeff(_coeffsJacMat, subCoeffM);
 
+    std::vector<bezierCoeff *> subD;
+    std::vector<bezierCoeff *> subM;
+    _coeffDet2->subdivide(subD);
+    _coeffMat2->subdivide(subM);
+
     int szD = _coeffsJacDet.size();
     int szM1 = _coeffsJacMat.size1();
     int szM2 = _coeffsJacMat.size2();
@@ -847,8 +852,8 @@ namespace jacobianBasedQuality {
       coeffD.copy(subCoeffD, i * szD, szD, 0);
       coeffM.copy(subCoeffM, i * szM1, szM1, 0, szM2, 0, 0);
       _CoeffDataIGE *newData;
-      newData =
-        new _CoeffDataIGE(coeffD, coeffM, _bfsDet, _bfsMat, _depth + 1, _type);
+      newData = new _CoeffDataIGE(coeffD, coeffM, _bfsDet, _bfsMat, _depth + 1,
+                                  _type, subD[i], subM[i]);
       v.push_back(newData);
     }
   }
@@ -874,9 +879,10 @@ namespace jacobianBasedQuality {
     computeCoeffLengthVectorsCorner_(*_coeffMat2, v2, _type,
                                      _bfsDet->getNumLagCoeff());
     fullVector<double> ige2;
-    const fullVector<double> d2(
-      const_cast<bezierCoeff *>(_coeffDet2)->getDataPtr(),
-      _coeffDet2->getNumCoeff());
+    fullVector<double> d2(_coeffDet2->getNumCornerCoeff());
+    for(int i = 0; i < _coeffDet2->getNumCornerCoeff(); ++i) {
+      d2(i) = _coeffDet2->getCornerCoeff(i);
+    }
     computeIGE_(d2, v2, ige2, _type);
 
     min2 = std::numeric_limits<double>::infinity();
@@ -1016,8 +1022,8 @@ namespace jacobianBasedQuality {
 
     fullMatrix<double> v;
     const fullMatrix<double> m(
-      _coeffMat2->getNumCoeff(), _coeffMat2->getNumColumns(),
-      const_cast<bezierCoeff *>(_coeffMat2)->getDataPtr());
+      const_cast<bezierCoeff *>(_coeffMat2)->getDataPtr(),
+      _coeffMat2->getNumCoeff(), _coeffMat2->getNumColumns());
     computeCoeffLengthVectors_(m, v, _type);
 
     fullVector<double> prox[6];
