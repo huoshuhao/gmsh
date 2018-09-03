@@ -3055,13 +3055,30 @@ bool OCC_Internals::importShapes(const std::string &fileName,
       step_colour_contents->GetColors(all_colours);
       Msg::Info("Number of colours in STEP File: %d", all_colours.Length());
       for(int i = 1; i <= all_colours.Length(); ++i){
-        Quantity_Color col;
+        Quantity_Color q_col;
         std::stringstream col_rgb;
-        step_colour_contents->GetColor(all_colours.Value(i), col);
-        col_rgb << " : (" << col.Red() << "," << col.Green() << "," <<
-        col.Blue() << ")";
+        step_colour_contents->GetColor(all_colours.Value(i), q_col);
+        Standard_Integer argb;
+        // first two bytes are always 00, so 24 is skipped as a shift below
+        Quantity_Color::Color2argb(q_col, argb);
+        //TODO check for bad Standard_Integer sizes?
+        int red_val = (argb >> 16) & 0xFF;
+        int green_val = (argb >> 8) & 0xFF;
+        int blue_val = argb & 0xFF;
+
+        col_rgb << " : (" << red_val << "," <<
+          green_val << "," << blue_val << ")";
+
+        // col_rgb << " : (" << col.Red() << "," << col.Green() << "," <<
+        // col.Blue() << ")";
+
         Msg::Info("Colour [ %d ] = %s %s", i,
-        col.StringName(col.Name()), col_rgb.str().c_str());
+        q_col.StringName(q_col.Name()), col_rgb.str().c_str());
+        int opaque = 255;
+        unsigned int rgba = CTX::instance()->packColor(red_val,
+                                                          green_val,
+                                                          blue_val,
+                                                          opaque);
       }
 
       // handles to extract material data
