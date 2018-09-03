@@ -1029,7 +1029,7 @@ void DeleteVolume(int iv, bool recursive)
 void DeletePhysicalPoint(int num)
 {
   PhysicalGroup *p = FindPhysicalGroup(num, MSH_PHYSICAL_POINT);
-  if(p) {
+  if (p) {
     List_Suppress(GModel::current()->getGEOInternals()->PhysicalGroups, &p,
                   ComparePhysicalGroup);
     List_Add(GModel::current()->getGEOInternals()->DelPhysicalGroups, &p);
