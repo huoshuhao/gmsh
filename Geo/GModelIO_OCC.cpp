@@ -3076,9 +3076,9 @@ bool OCC_Internals::importShapes(const std::string &fileName,
         q_col.StringName(q_col.Name()), col_rgb.str().c_str());
         int opaque = 255;
         unsigned int rgba = CTX::instance()->packColor(red_val,
-                                                          green_val,
-                                                          blue_val,
-                                                          opaque);
+                                                       green_val,
+                                                       blue_val,
+                                                       opaque);
       }
 
       // handles to extract material data
@@ -3145,6 +3145,9 @@ bool OCC_Internals::importShapes(const std::string &fileName,
              CTX::instance()->geom.occSewFaces, false,
              CTX::instance()->geom.occScaling);
   _multiBind(result, -1, outDimTags, highestDimOnly, true);
+
+  // have to assign colours, materials after shape healing
+
   return true;
 }
 
@@ -4140,6 +4143,20 @@ int GModel::readOCCBREP(const std::string &fn)
   _occ_internals->importShapes(fn, false, outDimTags, "brep");
   _occ_internals->synchronize(this);
   snapVertices();
+
+  // _occ_internals->getPGroups();
+  // set up physical groups
+  bool importPGroups = true;
+  if (importPGroups) {
+    #if defined(HAVE_OCC_CAF)
+    // leverage GEO physical group functionality
+      // _geo_internals->
+      // _geo_internals->synchronize(this);
+    #else
+      Msg::Error("Gmsh requires OCAF to import physical groups");
+    #endif
+  }
+
   return 1;
 }
 
@@ -4149,6 +4166,20 @@ int GModel::readOCCSTEP(const std::string &fn)
   std::vector<std::pair<int, int> > outDimTags;
   _occ_internals->importShapes(fn, false, outDimTags, "step");
   _occ_internals->synchronize(this);
+
+  // _occ_internals->getPGroups();
+  // set up physical groups
+  bool importPGroups = true;
+  if (importPGroups) {
+    #if defined(HAVE_OCC_CAF)
+    // leverage GEO physical group functionality
+      // _geo_internals->
+      // _geo_internals->synchronize(this);
+    #else
+      Msg::Error("Gmsh requires OCAF to import physical groups");
+    #endif
+  }
+
   return 1;
 }
 
