@@ -661,12 +661,6 @@ void OCC_Internals::_multiBind(const TopoDS_Shape &shape, int tag,
   }
 }
 
-void OCC_Internals::_importColors( //const TopoDS_Shape &shape
-    const std::vector<std::pair<int, int> > & shapes){
-
-    
-}
-
 bool OCC_Internals::_isBound(int dim, int tag)
 {
   switch(dim) {
@@ -3040,10 +3034,8 @@ bool OCC_Internals::importShapes(const std::string &fileName,
       // Read in the shapes, colours and materials in the STEP File
       Handle_XCAFDoc_ShapeTool step_shape_contents =
         XCAFDoc_DocumentTool::ShapeTool(step_doc->Main());
-      Handle_XCAFDoc_ColorTool step_colour_contents =
-        XCAFDoc_DocumentTool::ColorTool(step_doc->Main());
-      Handle_XCAFDoc_MaterialTool step_material_contents =
-        XCAFDoc_DocumentTool::MaterialTool(step_doc->Main());
+      // Handle_XCAFDoc_ColorTool step_colour_contents =
+      //   XCAFDoc_DocumentTool::ColorTool(step_doc->Main());
 
       TDF_LabelSequence step_shapes;
       step_shape_contents->GetShapes(step_shapes);
@@ -3058,37 +3050,10 @@ bool OCC_Internals::importShapes(const std::string &fileName,
         }
       }
 
-      TDF_LabelSequence all_colours;
-      step_colour_contents->GetColors(all_colours);
-      Msg::Info("Number of colours in STEP File: %d", all_colours.Length());
-      for(int i = 1; i <= all_colours.Length(); ++i){
-        Quantity_Color q_col;
-        std::stringstream col_rgb;
-        step_colour_contents->GetColor(all_colours.Value(i), q_col);
-        Standard_Integer argb;
-        // first two bytes are always 00, so 24 is skipped as a shift below
-        Quantity_Color::Color2argb(q_col, argb);
-        //TODO check for bad Standard_Integer sizes?
-        int red_val = (argb >> 16) & 0xFF;
-        int green_val = (argb >> 8) & 0xFF;
-        int blue_val = argb & 0xFF;
-
-        col_rgb << " : (" << red_val << "," <<
-          green_val << "," << blue_val << ")";
-
-        // col_rgb << " : (" << col.Red() << "," << col.Green() << "," <<
-        // col.Blue() << ")";
-
-        Msg::Info("Colour [ %d ] = %s %s", i,
-        q_col.StringName(q_col.Name()), col_rgb.str().c_str());
-        int opaque = 255;
-        unsigned int rgba = CTX::instance()->packColor(red_val,
-                                                       green_val,
-                                                       blue_val,
-                                                       opaque);
-      }
-
-      // handles to extract material data
+      // physical group style info
+      Handle_XCAFDoc_MaterialTool step_material_contents =
+      XCAFDoc_DocumentTool::MaterialTool(step_doc->Main());
+      // data handles
       Handle(TCollection_HAsciiString) mat_name;
       Handle(TCollection_HAsciiString) mat_description;
       Standard_Real mat_density;
@@ -3148,10 +3113,8 @@ bool OCC_Internals::importShapes(const std::string &fileName,
              CTX::instance()->geom.occFixSmallFaces,
              CTX::instance()->geom.occSewFaces, false,
              CTX::instance()->geom.occScaling);
+
   _multiBind(result, -1, outDimTags, highestDimOnly, true);
-
-  // have to assign colours, materials after shape healing
-
   return true;
 }
 
@@ -3161,6 +3124,97 @@ bool OCC_Internals::importShapes(const TopoDS_Shape *shape, bool highestDimOnly,
   if(!shape) return false;
   _multiBind(*shape, -1, outDimTags, highestDimOnly, true);
   return true;
+}
+
+bool OCC_Internals::importColors(const std::string &fileName,
+                                 const std::string &format)
+{
+#if defined(HAVE_OCC_CAF)
+    std::vector<std::string> split = SplitFileName(fileName);
+    // can only handle step files
+    if(!(format == "step" || split[2] == ".step" || split[2] == ".stp" ||
+            split[2] == ".STEP" || split[2] == ".STP")) {
+      Msg::Error("Gmsh cannot import colours for the %s extension",
+        split[2].c_str());
+      return false;
+    }
+    // Initiate a dummy XCAF Application to handle the STEP XCAF Document
+    static Handle_XCAFApp_Application dummy_app =
+      XCAFApp_Application::GetApplication();
+    // Create an XCAF Document to contain the STEP file itself
+    Handle_TDocStd_Document step_doc;
+    // Check if a STEP File is already open under this handle, if so, close it
+    // to prevent Segmentation Faults when trying to create a new document
+    if(dummy_app->NbDocuments() > 0) {
+      dummy_app->GetDocument(1, step_doc);
+      dummy_app->Close(step_doc);
+    }
+    dummy_app->NewDocument("STEP-XCAF", step_doc);
+    STEPCAFControl_Reader reader;
+    setTargetUnit(CTX::instance()->geom.occTargetUnit);
+    if(reader.ReadFile(fileName.c_str()) != IFSelect_RetDone) {
+      Msg::Error("Could not read file '%s'", fileName.c_str());
+      return false;
+    }
+    reader.Transfer(step_doc);
+
+    // use handle to get colour of each shape
+    Handle_XCAFDoc_ColorTool step_colour_contents =
+      XCAFDoc_DocumentTool::ColorTool(step_doc->Main());
+
+    // debug
+    TDF_LabelSequence all_colours;
+    step_colour_contents->GetColors(all_colours);
+    Msg::Info("Number of colours in STEP File: %d", all_colours.Length());
+    for(int i = 1; i <= all_colours.Length(); ++i){
+      Quantity_Color q_col;
+      std::stringstream col_rgb;
+      step_colour_contents->GetColor(all_colours.Value(i), q_col);
+      Standard_Integer argb;
+      // first two bytes are always 00, so the 24 shift is skipped
+      Quantity_Color::Color2argb(q_col, argb);
+      //TODO check for bad Standard_Integer sizes?
+      int red_val = (argb >> 16) & 0xFF;
+      int green_val = (argb >> 8) & 0xFF;
+      int blue_val = argb & 0xFF;
+
+      col_rgb << " : (" << red_val << "," <<
+        green_val << "," << blue_val << ")";
+
+      Msg::Info("Colour [ %d ] = %s %s", i,
+      q_col.StringName(q_col.Name()), col_rgb.str().c_str());
+      int opaque = 255;
+      unsigned int rgba = CTX::instance()->packColor(red_val,
+                                                     green_val,
+                                                     blue_val,
+                                                     opaque);
+    }
+
+    // shape doesn't exist as a gEntity because of healing, etc -> no problem
+    // shape does exist as a gEntity -> assign it a colour
+    // shape exists but has no colour -> no problem
+
+    // iterate over the TopoDS_* maps and get colours for them
+    
+
+    // Quantity_Color aColor;
+    // App::Color color(0.8f,0.8f,0.8f);
+    // if (aColorTool->GetColor(aShape, XCAFDoc_ColorGen, aColor) ||
+    //     aColorTool->GetColor(aShape, XCAFDoc_ColorSurf, aColor) ||
+    //     aColorTool->GetColor(aShape, XCAFDoc_ColorCurv, aColor)) {
+    //     color.r = (float)aColor.Red();
+    //     color.g = (float)aColor.Green();
+    //     color.b = (float)aColor.Blue();
+    //     std::vector<App::Color> colors;
+    //     colors.push_back(color);
+    //     applyColors(part, colors);
+    // }
+    return true;
+
+#else
+    Msg::Error("Gmsh requires OCAF to import physical groups");
+    return false;
+#endif
 }
 
 bool OCC_Internals::exportShapes(const std::string &fileName,
@@ -4147,39 +4201,18 @@ int GModel::readOCCBREP(const std::string &fn)
   _occ_internals->importShapes(fn, false, outDimTags, "brep");
   _occ_internals->synchronize(this);
   snapVertices();
-
-  // _occ_internals->getPGroups();
-  // set up physical groups
-  bool importPGroups = false;
-  if (importPGroups) {
-    #if defined(HAVE_OCC_CAF)
-      //TODO
-    #else
-      Msg::Error("Gmsh requires OCAF to import physical groups");
-    #endif
-  }
-
   return 1;
 }
 
 int GModel::readOCCSTEP(const std::string &fn)
 {
-  if(!_occ_internals) _occ_internals = new OCC_Internals;
+  if(!_occ_internals) { _occ_internals = new OCC_Internals; }
   std::vector<std::pair<int, int> > outDimTags;
   _occ_internals->importShapes(fn, false, outDimTags, "step");
+  //TODO
+  bool read_colors = false;
+  if (read_colors) { _occ_internals->importColors(fn, "step"); }
   _occ_internals->synchronize(this);
-
-  // _occ_internals->getPGroups();
-  // set up physical groups
-  bool importPGroups = false;
-  if (importPGroups) {
-    #if defined(HAVE_OCC_CAF)
-      //TODO
-    #else
-      Msg::Error("Gmsh requires OCAF to import physical groups");
-    #endif
-  }
-
   return 1;
 }
 

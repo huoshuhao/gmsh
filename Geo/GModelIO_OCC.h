@@ -88,8 +88,10 @@ private:
                   bool returnHighestDimOnly, bool recursive = false,
                   bool returnNewOnly = false);
 
-  // assign the colours saved in the OCC file to the matching gmsh entities
-  void _importColors(const std::vector<std::pair<int, int> > &outDimTags);
+  // assign the rgba colour to the OCC shape
+  // void _assignColor(const TopoDS_Shape &shape,
+  //                   unsigned int rgba,
+  //                   bool recursive);
 
   // is the entity of a given dimension and tag bound?
   bool _isBound(int dim, int tag);
@@ -331,6 +333,10 @@ public:
   bool importShapes(const TopoDS_Shape *shape, bool highestDimOnly,
                     std::vector<std::pair<int, int> > &outDimTags);
 
+  // import colours from file
+  bool importColors(const std::string &fileName,
+                    const std::string &format = "");
+
   // export all bound shapes to file
   bool exportShapes(const std::string &fileName,
                     const std::string &format = "");
@@ -391,6 +397,8 @@ public:
                     double angle, std::vector<SPoint3> &vertices,
                     std::vector<SVector3> &normals,
                     std::vector<int> &triangles);
+
+
 };
 
 #else // no OCC >= 6.9
@@ -658,6 +666,10 @@ public:
                     const std::string &format = "")
   {
     return _error("import shape");
+  }
+  bool importColors(const std::string &fileName, const std::string &format = "")
+  {
+    return _error("import color");
   }
   bool exportShapes(const std::string &fileName, const std::string &format = "")
   {
