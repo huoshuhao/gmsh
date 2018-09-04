@@ -3095,11 +3095,8 @@ bool OCC_Internals::importShapes(const std::string &fileName,
         // std::stringstream mat_info;
         step_material_contents->GetMaterial(all_materials(i), mat_name,
           mat_description, mat_density, mat_dens_name, mat_dens_val_type);
-        std::string s1 = mat_name->ToCString();
-        // std::string s1 = mat_name->Get().ToCString();
-        Msg::Info("material name: %s", s1.c_str());
+        Msg::Info("material name: %s", mat_name->ToCString());
       }
-
 
       // For the STEP File Reader in OCC, the 1st Shape contains the entire
       // compound geometry as one shape
@@ -4146,12 +4143,10 @@ int GModel::readOCCBREP(const std::string &fn)
 
   // _occ_internals->getPGroups();
   // set up physical groups
-  bool importPGroups = true;
+  bool importPGroups = false;
   if (importPGroups) {
     #if defined(HAVE_OCC_CAF)
-    // leverage GEO physical group functionality
-      // _geo_internals->
-      // _geo_internals->synchronize(this);
+      //TODO
     #else
       Msg::Error("Gmsh requires OCAF to import physical groups");
     #endif
@@ -4169,12 +4164,10 @@ int GModel::readOCCSTEP(const std::string &fn)
 
   // _occ_internals->getPGroups();
   // set up physical groups
-  bool importPGroups = true;
+  bool importPGroups = false;
   if (importPGroups) {
     #if defined(HAVE_OCC_CAF)
-    // leverage GEO physical group functionality
-      // _geo_internals->
-      // _geo_internals->synchronize(this);
+      //TODO
     #else
       Msg::Error("Gmsh requires OCAF to import physical groups");
     #endif
