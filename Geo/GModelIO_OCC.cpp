@@ -661,6 +661,12 @@ void OCC_Internals::_multiBind(const TopoDS_Shape &shape, int tag,
   }
 }
 
+void OCC_Internals::_importColors( //const TopoDS_Shape &shape
+    const std::vector<std::pair<int, int> > & shapes){
+
+    
+}
+
 bool OCC_Internals::_isBound(int dim, int tag)
 {
   switch(dim) {
@@ -686,6 +692,7 @@ bool OCC_Internals::_isBound(int dim, const TopoDS_Shape &shape)
   default: return false;
   }
 }
+
 
 TopoDS_Shape OCC_Internals::_find(int dim, int tag)
 {

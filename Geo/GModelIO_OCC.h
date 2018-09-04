@@ -38,7 +38,7 @@ class OCCMeshAttributesRTree;
 
 class OCC_Internals {
 public:
-  enum BooleanOperator { Union, Intersection, Difference, Section, Fragments }; // TODO C++11 remove 
+  enum BooleanOperator { Union, Intersection, Difference, Section, Fragments }; // TODO C++11 remove
 
 private:
   // have the internals changed since the last synchronisation?
@@ -78,7 +78,7 @@ private:
   // iterate on all bound entities and recompute the maximum tag
   void _recomputeMaxTag(int dim);
 
-  // bind (potentially) mutliple entities in shape and return the tags in
+  // bind (potentially) multiple entities in shape and return the tags in
   // outTags. If tag > 0 and a single entity if found, use that; if
   // highestDimOnly is true, only bind the entities (and sub-entities, if
   // recursive is set) of the highest dimension; if returnNewOnly is set, only
@@ -87,6 +87,9 @@ private:
                   std::vector<std::pair<int, int> > &outDimTags,
                   bool returnHighestDimOnly, bool recursive = false,
                   bool returnNewOnly = false);
+
+  // assign the colours saved in the OCC file to the matching gmsh entities
+  void _importColors(const std::vector<std::pair<int, int> > &outDimTags);
 
   // is the entity of a given dimension and tag bound?
   bool _isBound(int dim, int tag);
