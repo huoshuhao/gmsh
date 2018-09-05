@@ -88,11 +88,6 @@ private:
                   bool returnHighestDimOnly, bool recursive = false,
                   bool returnNewOnly = false);
 
-  // assign the rgba colour to the OCC shape
-  // void _assignColor(const TopoDS_Shape &shape,
-  //                   unsigned int rgba,
-  //                   bool recursive);
-
   // is the entity of a given dimension and tag bound?
   bool _isBound(int dim, int tag);
 

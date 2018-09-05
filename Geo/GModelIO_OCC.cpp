@@ -3126,6 +3126,7 @@ bool OCC_Internals::importShapes(const TopoDS_Shape *shape, bool highestDimOnly,
   return true;
 }
 
+// this method assumes all TopoDS_shapes have been bound
 bool OCC_Internals::importColors(const std::string &fileName,
                                  const std::string &format)
 {
@@ -3156,11 +3157,152 @@ bool OCC_Internals::importColors(const std::string &fileName,
       Msg::Error("Could not read file '%s'", fileName.c_str());
       return false;
     }
-    reader.Transfer(step_doc);
 
+    reader.Transfer(step_doc);
     // use handle to get colour of each shape
     Handle_XCAFDoc_ColorTool step_colour_contents =
       XCAFDoc_DocumentTool::ColorTool(step_doc->Main());
+
+    // retrieve all bound edges, surfaces, and volumes (solids)
+    // OCC does not have vertex colouring
+    TopTools_DataMapIteratorOfDataMapOfIntegerShape edges(_tagEdge);
+    TopTools_DataMapIteratorOfDataMapOfIntegerShape surfaces(_tagFace);
+    TopTools_DataMapIteratorOfDataMapOfIntegerShape solids(_tagSolid);
+
+    int dim = 1; // edges
+    for(; edges.More(); edges.Next()) {
+      TopoDS_Shape shape = edges.Value();
+      int tag = _find(dim, shape);
+      Msg::Info("found edge with tag %d", tag);
+      GEntity *ge = GModel::current()->getEntityByTag(dim, std::abs(tag));
+      // only check if there's a matching entity
+      if (ge) {
+        Quantity_Color q_col;
+        //ColorGen defines default surface, curve color and is overriden by both
+        if (step_colour_contents->GetColor(shape, XCAFDoc_ColorGen, q_col) ||
+            step_colour_contents->GetColor(shape, XCAFDoc_ColorSurf, q_col) ||
+            step_colour_contents->GetColor(shape, XCAFDoc_ColorCurv, q_col)) {
+
+              Standard_Integer argb;
+              // first two bytes are always 00, so the 24 shift is skipped
+              Quantity_Color::Color2argb(q_col, argb);
+              //TODO check for bad Standard_Integer sizes?
+              int red_val = (argb >> 16) & 0xFF;
+              int green_val = (argb >> 8) & 0xFF;
+              int blue_val = argb & 0xFF;
+
+              std::stringstream col_rgb;
+              col_rgb << " : (" << red_val << "," <<
+                green_val << "," << blue_val << ")";
+
+              Msg::Info("Colour [ %d ] = %s %s", tag,
+              q_col.StringName(q_col.Name()), col_rgb.str().c_str());
+              int opaque = 255;
+              unsigned int rgba = CTX::instance()->packColor(red_val,
+                                                             green_val,
+                                                             blue_val,
+                                                             opaque);
+              bool recursive = false;
+              ge->setColor(rgba, recursive);
+        } // has a colour
+    else {
+      Msg::Info("No colour found!");
+    }
+      } // ge not null
+    else {
+      Msg::Info("GEntity does not exist!");
+    }
+    } // for loop
+
+    dim = 2; // surfaces
+    for(; surfaces.More(); surfaces.Next()) {
+      TopoDS_Shape shape = surfaces.Value();
+      int tag = _find(dim, shape);
+      Msg::Info("found surface with tag %d", tag);
+      GEntity *ge = GModel::current()->getEntityByTag(dim, std::abs(tag));
+      // only check if there's a matching entity
+      if (ge) {
+        Quantity_Color q_col;
+        //ColorGen defines default surface, curve color and is overriden by both
+        if (step_colour_contents->GetColor(shape, XCAFDoc_ColorGen, q_col) ||
+            step_colour_contents->GetColor(shape, XCAFDoc_ColorSurf, q_col) ||
+            step_colour_contents->GetColor(shape, XCAFDoc_ColorCurv, q_col)) {
+
+              Standard_Integer argb;
+              // first two bytes are always 00, so the 24 shift is skipped
+              Quantity_Color::Color2argb(q_col, argb);
+              //TODO check for bad Standard_Integer sizes?
+              int red_val = (argb >> 16) & 0xFF;
+              int green_val = (argb >> 8) & 0xFF;
+              int blue_val = argb & 0xFF;
+
+              std::stringstream col_rgb;
+              col_rgb << " : (" << red_val << "," <<
+                green_val << "," << blue_val << ")";
+
+              Msg::Info("Colour [ %d ] = %s %s", tag,
+              q_col.StringName(q_col.Name()), col_rgb.str().c_str());
+              int opaque = 255;
+              unsigned int rgba = CTX::instance()->packColor(red_val,
+                                                             green_val,
+                                                             blue_val,
+                                                             opaque);
+              bool recursive = false;
+              ge->setColor(rgba, recursive);
+        } // has a colour
+    else {
+      Msg::Info("No colour found!");
+    }
+      } // ge not null
+    else {
+      Msg::Info("GEntity does not exist!");
+    }
+    } // for loop
+
+    dim = 3; // solids
+    for(; solids.More(); solids.Next()) {
+      TopoDS_Shape shape = solids.Value();
+      int tag = _find(dim, shape);
+      Msg::Info("found solid with tag %d", tag);
+      GEntity *ge = GModel::current()->getEntityByTag(dim, std::abs(tag));
+      // only check if there's a matching entity
+      if (ge) {
+        Quantity_Color q_col;
+        //ColorGen defines default surface, curve color and is overriden by both
+        if (step_colour_contents->GetColor(shape, XCAFDoc_ColorGen, q_col) ||
+            step_colour_contents->GetColor(shape, XCAFDoc_ColorSurf, q_col) ||
+            step_colour_contents->GetColor(shape, XCAFDoc_ColorCurv, q_col)) {
+
+              Standard_Integer argb;
+              // first two bytes are always 00, so the 24 shift is skipped
+              Quantity_Color::Color2argb(q_col, argb);
+              //TODO check for bad Standard_Integer sizes?
+              int red_val = (argb >> 16) & 0xFF;
+              int green_val = (argb >> 8) & 0xFF;
+              int blue_val = argb & 0xFF;
+
+              std::stringstream col_rgb;
+              col_rgb << " : (" << red_val << "," <<
+                green_val << "," << blue_val << ")";
+
+              Msg::Info("Colour [ %d ] = %s %s", tag,
+              q_col.StringName(q_col.Name()), col_rgb.str().c_str());
+              int opaque = 255;
+              unsigned int rgba = CTX::instance()->packColor(red_val,
+                                                             green_val,
+                                                             blue_val,
+                                                             opaque);
+              bool recursive = false;
+              ge->setColor(rgba, recursive);
+        } // has a colour
+    else {
+      Msg::Info("No colour found!");
+    }
+      } // ge not null
+    else {
+      Msg::Info("GEntity does not exist!");
+    }
+    } // for loop
 
     // debug
     TDF_LabelSequence all_colours;
@@ -3168,7 +3310,6 @@ bool OCC_Internals::importColors(const std::string &fileName,
     Msg::Info("Number of colours in STEP File: %d", all_colours.Length());
     for(int i = 1; i <= all_colours.Length(); ++i){
       Quantity_Color q_col;
-      std::stringstream col_rgb;
       step_colour_contents->GetColor(all_colours.Value(i), q_col);
       Standard_Integer argb;
       // first two bytes are always 00, so the 24 shift is skipped
@@ -3178,6 +3319,7 @@ bool OCC_Internals::importColors(const std::string &fileName,
       int green_val = (argb >> 8) & 0xFF;
       int blue_val = argb & 0xFF;
 
+      std::stringstream col_rgb;
       col_rgb << " : (" << red_val << "," <<
         green_val << "," << blue_val << ")";
 
@@ -3191,11 +3333,10 @@ bool OCC_Internals::importColors(const std::string &fileName,
     }
 
     // shape doesn't exist as a gEntity because of healing, etc -> no problem
-    // shape does exist as a gEntity -> assign it a colour
     // shape exists but has no colour -> no problem
+    // shape does exist as a gEntity -> assign it a colour
 
     // iterate over the TopoDS_* maps and get colours for them
-    
 
     // Quantity_Color aColor;
     // App::Color color(0.8f,0.8f,0.8f);
@@ -3210,7 +3351,6 @@ bool OCC_Internals::importColors(const std::string &fileName,
     //     applyColors(part, colors);
     // }
     return true;
-
 #else
     Msg::Error("Gmsh requires OCAF to import physical groups");
     return false;
@@ -4209,10 +4349,10 @@ int GModel::readOCCSTEP(const std::string &fn)
   if(!_occ_internals) { _occ_internals = new OCC_Internals; }
   std::vector<std::pair<int, int> > outDimTags;
   _occ_internals->importShapes(fn, false, outDimTags, "step");
-  //TODO
-  bool read_colors = false;
+  _occ_internals->synchronize(this); // need this call before importColours
+  bool read_colors = true;
   if (read_colors) { _occ_internals->importColors(fn, "step"); }
-  _occ_internals->synchronize(this);
+  // don't need another sync here since no geometry changes
   return 1;
 }
 
