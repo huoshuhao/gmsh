@@ -415,12 +415,12 @@ bool gmshLocalNetworkClient::receiveMessage(gmshLocalNetworkClient *master)
     break;
   case GmshSocket::GMSH_MERGE_FILE:
     if(CTX::instance()->solver.autoMergeFile) {
+      unsigned int n = PView::list.size();
       bool changedBeforeMerge = onelab::server::instance()->getChanged("Gmsh");
       MergePostProcessingFile(message, CTX::instance()->solver.autoShowViews,
                               CTX::instance()->solver.autoShowLastStep, true);
       onelab::server::instance()->setChanged(changedBeforeMerge, "Gmsh");
 #if defined(HAVE_FLTK)
-      unsigned int n = PView::list.size();
       drawContext::global()->draw();
       if(FlGui::available() && n != PView::list.size()) {
         FlGui::instance()->rebuildTree(true);
@@ -444,9 +444,9 @@ bool gmshLocalNetworkClient::receiveMessage(gmshLocalNetworkClient *master)
               GetTimeInSeconds() - timer);
     break;
   case GmshSocket::GMSH_VERTEX_ARRAY: {
+    int n = PView::list.size();
     PView::fillVertexArray(this, length, &message[0], swap);
 #if defined(HAVE_FLTK)
-    int n = PView::list.size();
     if(FlGui::available())
       FlGui::instance()->updateViews(n != (int)PView::list.size(), true);
     drawContext::global()->draw();
