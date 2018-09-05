@@ -4350,7 +4350,7 @@ int GModel::readOCCSTEP(const std::string &fn)
   std::vector<std::pair<int, int> > outDimTags;
   _occ_internals->importShapes(fn, false, outDimTags, "step");
   _occ_internals->synchronize(this); // need this call before importColours
-  bool read_colors = true;
+  bool read_colors = false; // TODO 
   if (read_colors) { _occ_internals->importColors(fn, "step"); }
   // don't need another sync here since no geometry changes
   return 1;
