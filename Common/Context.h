@@ -80,6 +80,8 @@ struct contextGeometryOptions {
   int occAutoFix, occFixDegenerated, occFixSmallEdges, occFixSmallFaces;
   int occSewFaces, occParallel, occBooleanPreserveNumbering;
   int occDisableSTL;
+  int occImportColors;
+  int occImportMaterialsAsPhysicalGroups;
   double occScaling;
   std::string occTargetUnit;
   int copyMeshingMethod, exactExtrusion;

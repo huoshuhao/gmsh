@@ -4775,6 +4775,22 @@ double opt_geometry_occ_fix_small_faces(OPT_ARGS_NUM)
   return CTX::instance()->geom.occFixSmallFaces;
 }
 
+double opt_geometry_occ_import_colors(OPT_ARGS_NUM)
+{
+  if(action & GMSH_SET) {
+    CTX::instance()->geom.occImportColors = val ? 1 : 0;
+  }
+  return CTX::instance()->geom.occImportColors;
+}
+
+double opt_geometry_occ_import_materials(OPT_ARGS_NUM)
+{
+  if(action & GMSH_SET) {
+    CTX::instance()->geom.occImportMaterialsAsPhysicalGroups = val ? 1 : 0;
+  }
+  return CTX::instance()->geom.occImportMaterialsAsPhysicalGroups;
+}
+
 double opt_geometry_occ_sew_faces(OPT_ARGS_NUM)
 {
   if(action & GMSH_SET){

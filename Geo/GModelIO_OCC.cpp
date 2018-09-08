@@ -4358,9 +4358,18 @@ int GModel::readOCCSTEP(const std::string &fn)
   std::vector<std::pair<int, int> > outDimTags;
   _occ_internals->importShapes(fn, false, outDimTags, "step");
   _occ_internals->synchronize(this); // need this call before importColors
-  bool read_colors = false; // TODO add CTX->getOption stuff here
-  if (read_colors) { _occ_internals->importColors("step"); }
-  // don't need another sync here since no geometry changes
+
+  if (CTX::instance()->geom.occImportColors) {
+    Msg::Info("Importing colors from %s...", fn.c_str());
+    _occ_internals->importColors("step");
+  }
+  // TODO add importMaterials stuff here
+  // if (CTX::instance()->geom.occImportMaterialsAsPhysicalGroups) {
+  //   Msg::Info("Importing materials as physical groups from %s", fn);
+  //   _occ_internals->importMaterials("step");
+  // }
+
+  // don't need another sync afterwards since no geometry changes
   return 1;
 }
 
