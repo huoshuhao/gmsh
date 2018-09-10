@@ -1116,20 +1116,22 @@ namespace jacobianBasedQuality {
 
   double _CoeffDataIGE::_computeLowerBound2() const
   {
+    fullVector<double> det;
+    fullMatrix<double> mat;
+    _coeffDet2->setVectorAsProxy(det);
+    _coeffMat2->setMatrixAsProxy(mat);
+
     // Speedup: If one coeff _coeffsJacDet is negative, without bounding
     // J^2/(a^2+b^2), we would get with certainty a negative lower bound.
     // Returning 0.
-    for(int i = 0; i < _coeffsJacDet.size(); ++i) {
-      if(_coeffsJacDet(i) < 0) {
+    for(int i = 0; i < det.size(); ++i) {
+      if(det(i) < 0) {
         return 0;
       }
     }
 
     fullMatrix<double> v;
-    const fullMatrix<double> m(
-      const_cast<bezierCoeff *>(_coeffMat2)->getDataPtr(),
-      _coeffMat2->getNumCoeff(), _coeffMat2->getNumColumns());
-    computeCoeffLengthVectors_(m, v, _type);
+    computeCoeffLengthVectors_(mat, v, _type);
 
     fullVector<double> prox[6];
     for(int i = 0; i < v.size2(); ++i) {
@@ -1143,28 +1145,28 @@ namespace jacobianBasedQuality {
     switch(_type) {
     case TYPE_QUA:
       raiser->computeCoeff2(prox[0], prox[1], coeffDenominator);
-      return _computeBoundRational(_coeffsJacDet, coeffDenominator, true);
+      return _computeBoundRational(det, coeffDenominator, true);
 
     case TYPE_TRI:
       raiser->computeCoeff2(prox[0], prox[1], coeffDenominator);
-      result += _computeBoundRational(_coeffsJacDet, coeffDenominator, true);
+      result += _computeBoundRational(det, coeffDenominator, true);
       raiser->computeCoeff2(prox[0], prox[2], coeffDenominator);
-      result += _computeBoundRational(_coeffsJacDet, coeffDenominator, true);
+      result += _computeBoundRational(det, coeffDenominator, true);
       raiser->computeCoeff2(prox[1], prox[2], coeffDenominator);
-      result += _computeBoundRational(_coeffsJacDet, coeffDenominator, true);
+      result += _computeBoundRational(det, coeffDenominator, true);
       return cTri * result / 3;
 
     case TYPE_HEX:
       raiser->computeCoeff2(prox[0], prox[1], prox[2], coeffDenominator);
-      return _computeBoundRational(_coeffsJacDet, coeffDenominator, true);
+      return _computeBoundRational(det, coeffDenominator, true);
 
     case TYPE_PRI:
       raiser->computeCoeff2(prox[0], prox[1], prox[2], coeffDenominator);
-      result += _computeBoundRational(_coeffsJacDet, coeffDenominator, true);
+      result += _computeBoundRational(det, coeffDenominator, true);
       raiser->computeCoeff2(prox[0], prox[3], prox[2], coeffDenominator);
-      result += _computeBoundRational(_coeffsJacDet, coeffDenominator, true);
+      result += _computeBoundRational(det, coeffDenominator, true);
       raiser->computeCoeff2(prox[1], prox[3], prox[2], coeffDenominator);
-      result += _computeBoundRational(_coeffsJacDet, coeffDenominator, true);
+      result += _computeBoundRational(det, coeffDenominator, true);
       return cTri * result / 3;
 
     case TYPE_TET: {
@@ -1193,7 +1195,7 @@ namespace jacobianBasedQuality {
 
       fullVector<double> &coeffNumerator = tmp;
       bezierBasisRaiser *raiserBis = _bfsDet->getRaiser();
-      raiserBis->computeCoeff2(coeffNum1, _coeffsJacDet, coeffNumerator);
+      raiserBis->computeCoeff2(coeffNum1, det, coeffNumerator);
       raiserBis->computeCoeff2(coeffDen1, coeffDen2, coeffDenominator);
 
       result = _computeBoundRational(coeffNumerator, coeffDenominator, true);
@@ -1222,7 +1224,7 @@ namespace jacobianBasedQuality {
 
       fullVector<double> &coeffNumerator = tmp;
       bezierBasisRaiser *raiserBis = _bfsDet->getRaiser();
-      raiserBis->computeCoeff2(coeffNum1, _coeffsJacDet, coeffNumerator);
+      raiserBis->computeCoeff2(coeffNum1, det, coeffNumerator);
       raiserBis->computeCoeff2(coeffDen1, coeffDen2, coeffDenominator);
 
       result = _computeBoundRational(coeffNumerator, coeffDenominator, true);
@@ -1429,8 +1431,8 @@ namespace jacobianBasedQuality {
       domains[i]->deleteBezierCoeff();
       delete domains[i];
     }
-    //    std::cout << "minIGE: " << minB << " vs " << minB2 << " + " << minL
-    //              << " vs " << minL2 << std::endl;
+    std::cout << "minIGE: " << minB << " vs " << minB2 << " + " << minL
+              << " vs " << minL2 << std::endl;
     double fact = .5 * (minB + minL);
     return fact * minL + (1 - fact) * minB;
   }
