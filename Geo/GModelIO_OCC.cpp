@@ -3062,62 +3062,63 @@ bool OCC_Internals::importShapes(const std::string &fileName,
 
       //shape information
       TDF_LabelSequence step_shapes;
+      // only gets top level shapes
       step_shape_contents->GetShapes(step_shapes);
       for(int i = 1; i <= step_shapes.Length(); ++i) {
         Msg::Info("step shape %d \n", i);
         TDF_Label label = step_shapes.Value(i);
-
-        Msg::Info("number of attributes: %d ", TDF_Tool::NbAttributes(label));
-        Msg::Info("is this bad boy self-contained? %d", TDF_Tool::IsSelfContained(label));
-
-        // if it is not self-contained, get the reference attributes
-        TDF_AttributeMap atmap;
-        TDF_Tool::OutReferers(label, atmap);
-        TDF_MapIteratorOfAttributeMap atmap_it(atmap);
-        for(; atmap_it.More(); atmap_it.Next()) {
-          std::stringstream mapss;
-          // atmap_it.Value()->Dump(mapss);
-          TDF_Label refdLabel = atmap_it.Value()->Label();
-          refdLabel.Dump(mapss);
-          Msg::Info(mapss.str().c_str());
-        }
-
-        Msg::Info("after map iterator");
-
-        // go over children of this entity
-        TDF_ChildIterator it;
-        TCollection_AsciiString es;
-        for (it.Initialize(label, Standard_True); it.More(); it.Next()){
-          TDF_Tool::Entry(it.Value(), es);
-          Msg::Info("%d has child value: %s", i, es.ToCString());
-        }
-
-
         Handle(TDataStd_Name) N;
         if(label.FindAttribute(TDataStd_Name::GetID(), N)) {
           TCollection_ExtendedString name = N->Get();
           std::string s1 = TCollection_AsciiString(name).ToCString();
           Msg::Info("shape named: %s\n", s1.c_str());
         }
-        Quantity_Color col;
-        // will receive the recorded value (if there is some)
-        // if ( step_colour_contents->IsSet (label , ctype)) {
-        //   // yes, there is one ..
-        // }
-
-        std::stringstream ss;
-        label.Dump(ss);
-        Msg::Info(ss.str().c_str());
-        //clear stringstream
-        ss.str("");
       }
 
-      Msg::Info("\n\n");
-
       // colour info
-      // debug
       TDF_LabelSequence all_colours;
       step_colour_contents->GetColors(all_colours);
+      // debug
+      // step_shape_contents->GetShapes(step_shapes);
+      for(int i = 1; i <= step_shapes.Length(); ++i) {
+        Msg::Info("step shape %d \n", i);
+        // this line gets the colours!
+        TopoDS_Shape shape = step_shape_contents->GetShape(step_shapes.Value(i));
+        Quantity_Color q_col;
+        if (step_colour_contents->GetColor(shape, XCAFDoc_ColorGen,q_col) ||
+            step_colour_contents->GetColor(shape, XCAFDoc_ColorSurf, q_col) ||
+            step_colour_contents->GetColor(shape, XCAFDoc_ColorCurv, q_col)) {
+
+        Standard_Integer argb;
+        Quantity_Color::Color2argb(q_col, argb);
+        // first two bytes are always 00, so the 24 shift is skipped
+        //TODO check for bad Standard_Integer sizes?
+        int red_val = (argb >> 16) & 0xFF;
+        int green_val = (argb >> 8) & 0xFF;
+        int blue_val = argb & 0xFF;
+
+        std::stringstream col_rgb;
+        col_rgb << " : (" << red_val << "," <<
+          green_val << "," << blue_val << ")";
+
+        Msg::Info("Colour [ %d ] = %s %s", i,
+        q_col.StringName(q_col.Name()), col_rgb.str().c_str());
+        int opaque = 255;
+        unsigned int rgba = CTX::instance()->packColor(red_val,
+                                                       green_val,
+                                                       blue_val,
+                                                       opaque);
+        // std::stringstream ss;
+        // label.Dump(ss);
+        // Msg::Info(ss.str().c_str());
+        //clear stringstream
+        // ss.str("");
+        _importColorMap.Bind(shape, rgba);
+
+      }
+    }
+
+
       Msg::Info("Number of colours in STEP File: %d", all_colours.Length());
       for(int i = 1; i <= all_colours.Length(); ++i){
         TDF_Label label = all_colours.Value(i);
@@ -3152,7 +3153,6 @@ bool OCC_Internals::importShapes(const std::string &fileName,
       Msg::Info("\n");
 
       // bind colours here
-      // _importColorMap.Bind(sub_shape, rgba);
 
       // physical group style info
       Handle_XCAFDoc_MaterialTool step_material_contents =
@@ -3243,33 +3243,80 @@ bool OCC_Internals::importColors(const std::string &format)
     // retrieve all bound edges, surfaces, and volumes (solids)
     // OCC does not have vertex colouring
 
+
+    std::string fileName = "colour_test_assembly.stp";
+
+    // Initiate a dummy XCAF Application to handle the STEP XCAF Document
+    static Handle_XCAFApp_Application dummy_app =
+      XCAFApp_Application::GetApplication();
+    // Create an XCAF Document to contain the STEP file itself
+    Handle_TDocStd_Document step_doc;
+    // Check if a STEP File is already open under this handle, if so, close it
+    // to prevent Segmentation Faults when trying to create a new document
+    if(dummy_app->NbDocuments() > 0) {
+      dummy_app->GetDocument(1, step_doc);
+      dummy_app->Close(step_doc);
+    }
+    // // try and change how shapes are read in
+    // Standard_Integer ic = Interface_Static::IVal("read.step.assembly.level");
+    // Msg::Info("assembly level is: %d", ic);
+    // if(!Interface_Static::SetIVal("read.step.assembly.level", 2)){
+    //   Msg::Info("could not modify assembly level");
+    //}
+
+    dummy_app->NewDocument("STEP-XCAF", step_doc);
+    STEPCAFControl_Reader reader;
+    setTargetUnit(CTX::instance()->geom.occTargetUnit);
+
+    if(reader.ReadFile(fileName.c_str()) != IFSelect_RetDone) {
+      Msg::Error("Could not read file '%s'", fileName.c_str());
+      return false;
+    }
+
+    reader.Transfer(step_doc);
+
+    // print out info on the main doc
+    Handle_XCAFDoc_ColorTool step_colour_contents =
+      XCAFDoc_DocumentTool::ColorTool(step_doc->Main());
+
+
+
     // TopTools_DataMapIteratorOfDataMapOfIntegerShape edges(_tagEdge);
     // TopTools_DataMapIteratorOfDataMapOfIntegerShape surfaces(_tagFace);
-  //   TopTools_DataMapIteratorOfDataMapOfIntegerShape solids(_tagSolid);
+    TopTools_DataMapIteratorOfDataMapOfIntegerShape solids(_tagSolid);
   //
-  //   int dim = 3; // solids
-  //   for(; solids.More(); solids.Next()) {
-  //     TopoDS_Shape shape = solids.Value();
-  //     int tag = _find(dim, shape);
-  //     Msg::Info("found solid with tag %d", tag);
-  //     GEntity *ge = GModel::current()->getEntityByTag(dim, std::abs(tag));
-  //     // only check if there's a matching entity
-  //     if (ge) {
-  //       // find if the colour is set
-  //       unsigned int rgba;
-  //       if(_importColorMap.Find(shape, rgba)){
-  //         Msg::Info("setting solid colour");
-  //         bool recursive = false;
-  //         ge->setColor(rgba, recursive);
-  //       }
-  //       else {
-  //         Msg::Info("No colour found!");
-  //       }
-  //   } // ge not null
-  //   else {
-  //     Msg::Info("GEntity does not exist!");
-  //   }
-  // } // for loop
+    int dim = 3; // solids
+    for(; solids.More(); solids.Next()) {
+      const TopoDS_Shape& shape = solids.Value();
+      int tag = _find(dim, shape);
+      Msg::Info("found solid with tag %d", tag);
+      GEntity *ge = GModel::current()->getEntityByTag(dim, std::abs(tag));
+      // only check if there's a matching entity
+      if (ge) {
+        // find if the colour is set
+        unsigned int rgba;
+        Quantity_Color q_col;
+        if (step_colour_contents->GetColor(shape, XCAFDoc_ColorGen,q_col) ||
+            step_colour_contents->GetColor(shape, XCAFDoc_ColorSurf, q_col) ||
+            step_colour_contents->GetColor(shape, XCAFDoc_ColorCurv, q_col)) {
+              Msg::Info("found the colour in the ColorTool");
+              Msg::Info("Colour = %s",
+               q_col.StringName(q_col.Name()));
+          }
+
+       else if(_importColorMap.Find(shape, rgba)){
+          Msg::Info("setting solid colour from color map");
+          bool recursive = false;
+          ge->setColor(rgba, recursive);
+        }
+        else {
+          Msg::Info("No colour found!");
+        }
+    } // ge not null
+    else {
+      Msg::Info("GEntity does not exist!");
+    }
+  } // for loop
 
     //
     // int dim = 1; // edges
@@ -4363,7 +4410,7 @@ int GModel::readOCCSTEP(const std::string &fn)
     Msg::Info("Importing colors from %s...", fn.c_str());
     _occ_internals->importColors("step");
   }
-  // TODO add importMaterials stuff here
+  // TODO add importMaterials stuff
   // if (CTX::instance()->geom.occImportMaterialsAsPhysicalGroups) {
   //   Msg::Info("Importing materials as physical groups from %s", fn);
   //   _occ_internals->importMaterials("step");
