@@ -3055,15 +3055,26 @@ bool OCC_Internals::importShapes(const std::string &fileName,
 
       // transfer colours from the step doc to the XCAF doc
       // Read in the shapes, colours and materials in the STEP File
-      Handle_XCAFDoc_ShapeTool step_shape_contents =
+      Handle_XCAFDoc_ShapeTool STool =
         XCAFDoc_DocumentTool::ShapeTool(step_doc->Main());
       Handle_XCAFDoc_ColorTool step_colour_contents =
         XCAFDoc_DocumentTool::ColorTool(step_doc->Main());
+      // physical group style info
+      Handle_XCAFDoc_MaterialTool step_material_contents =
+      XCAFDoc_DocumentTool::MaterialTool(step_doc->Main());
+      // data handles
+      Handle(TCollection_HAsciiString) mat_name;
+      Handle(TCollection_HAsciiString) mat_description;
+      Standard_Real mat_density;
+      Handle(TCollection_HAsciiString) mat_dens_name;
+      Handle(TCollection_HAsciiString) mat_dens_val_type;
+
 
       //shape information
       TDF_LabelSequence step_shapes;
+      TDF_LabelSequence kids;
       // only gets top level shapes
-      step_shape_contents->GetShapes(step_shapes);
+      STool->GetShapes(step_shapes);
       for(int i = 1; i <= step_shapes.Length(); ++i) {
         Msg::Info("step shape %d \n", i);
         TDF_Label label = step_shapes.Value(i);
@@ -3073,17 +3084,39 @@ bool OCC_Internals::importShapes(const std::string &fileName,
           std::string s1 = TCollection_AsciiString(name).ToCString();
           Msg::Info("shape named: %s\n", s1.c_str());
         }
+        if ( STool->IsAssembly(label) ) {
+          Standard_Boolean subchilds = Standard_True;
+          Standard_Integer nbc = STool->NbComponents(label, subchilds);
+          Msg::Info("an assembly with %d children", nbc);
+          XCAFDoc_ShapeTool::GetSubShapes(label, kids);
+
+          for(int j = 1; j <= kids.Length(); ++j){
+            TDF_Label kidlabel = kids.Value(j);
+            //colour check
+            Quantity_Color q_col;
+            if (step_colour_contents->GetColor(kidlabel, XCAFDoc_ColorGen,q_col) ||
+                step_colour_contents->GetColor(kidlabel, XCAFDoc_ColorSurf, q_col) ||
+                step_colour_contents->GetColor(kidlabel, XCAFDoc_ColorCurv, q_col)) {
+                Msg::Info("Colour for kid %d = %s", j, q_col.StringName(q_col.Name()));
+            }
+            //material check
+            if(step_material_contents->GetMaterial(kidlabel, mat_name,
+              mat_description, mat_density, mat_dens_name, mat_dens_val_type)){
+                Msg::Info("material for kid %d: %s", j, mat_name->ToCString());
+            }
+        }
       }
+    }
 
       // colour info
       TDF_LabelSequence all_colours;
       step_colour_contents->GetColors(all_colours);
       // debug
-      // step_shape_contents->GetShapes(step_shapes);
+      // STool->GetShapes(step_shapes);
       for(int i = 1; i <= step_shapes.Length(); ++i) {
         Msg::Info("step shape %d \n", i);
         // this line gets the colours!
-        TopoDS_Shape shape = step_shape_contents->GetShape(step_shapes.Value(i));
+        const TopoDS_Shape& shape = STool->GetShape(step_shapes.Value(i));
         Quantity_Color q_col;
         if (step_colour_contents->GetColor(shape, XCAFDoc_ColorGen,q_col) ||
             step_colour_contents->GetColor(shape, XCAFDoc_ColorSurf, q_col) ||
@@ -3152,17 +3185,15 @@ bool OCC_Internals::importShapes(const std::string &fileName,
 
       Msg::Info("\n");
 
-      // bind colours here
-
-      // physical group style info
-      Handle_XCAFDoc_MaterialTool step_material_contents =
-      XCAFDoc_DocumentTool::MaterialTool(step_doc->Main());
-      // data handles
-      Handle(TCollection_HAsciiString) mat_name;
-      Handle(TCollection_HAsciiString) mat_description;
-      Standard_Real mat_density;
-      Handle(TCollection_HAsciiString) mat_dens_name;
-      Handle(TCollection_HAsciiString) mat_dens_val_type;
+      // // physical group style info
+      // Handle_XCAFDoc_MaterialTool step_material_contents =
+      // XCAFDoc_DocumentTool::MaterialTool(step_doc->Main());
+      // // data handles
+      // Handle(TCollection_HAsciiString) mat_name;
+      // Handle(TCollection_HAsciiString) mat_description;
+      // Standard_Real mat_density;
+      // Handle(TCollection_HAsciiString) mat_dens_name;
+      // Handle(TCollection_HAsciiString) mat_dens_val_type;
 
       TDF_LabelSequence all_materials;
       step_material_contents->GetMaterialLabels(all_materials);
@@ -3174,9 +3205,21 @@ bool OCC_Internals::importShapes(const std::string &fileName,
         Msg::Info("material name: %s", mat_name->ToCString());
       }
 
+      // need to get material on the kid level
+      // find materials for each shape
+      for(int i = 1; i <= kids.Length(); ++i) {
+        Msg::Info("step shape %d \n", i);
+        // not using label properly here; referring to top level rep?
+        // prints out bad materials, when TopoDS_Shape used for colours it works
+        const TDF_Label& lshape = kids.Value(i);
+        step_material_contents->GetMaterial(lshape, mat_name,
+          mat_description, mat_density, mat_dens_name, mat_dens_val_type);
+        Msg::Info("material name: %s", mat_name->ToCString());
+      }
+
       // For the STEP File Reader in OCC, the 1st Shape contains the entire
       // compound geometry as one shape
-      result = step_shape_contents->GetShape(step_shapes.Value(1));
+      result = STool->GetShape(step_shapes.Value(1));
 
 
       // However, colour information is usually stored at the individual part
