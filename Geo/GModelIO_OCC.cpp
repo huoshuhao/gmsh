@@ -3280,14 +3280,11 @@ bool OCC_Internals::importShapes(const TopoDS_Shape *shape, bool highestDimOnly,
 }
 
 // this method assumes all TopoDS_shapes have been bound
-bool OCC_Internals::importColors(const std::string &format)
+bool OCC_Internals::importColors(const std::string &fileName, const std::string &format)
 {
 #if defined(HAVE_OCC_CAF)
     // retrieve all bound edges, surfaces, and volumes (solids)
     // OCC does not have vertex colouring
-
-
-    std::string fileName = "colour_test_assembly.stp";
 
     // Initiate a dummy XCAF Application to handle the STEP XCAF Document
     static Handle_XCAFApp_Application dummy_app =
@@ -4178,7 +4175,7 @@ void OCC_Internals::_healShape(TopoDS_Shape &myshape, double tolerance,
   Msg::Info("Faces              : %d (%d)", nnrf, nrf);
   Msg::Info("Edges              : %d (%d)", nnre, nre);
   Msg::Info("Vertices           : %d (%d)", nnrv, nrv);
-  Msg::Info("Totol surface area : %g (%g)", newsurfacecont, surfacecont);
+  Msg::Info("Total surface area : %g (%g)", newsurfacecont, surfacecont);
   Msg::Info("-----------------------------------");
 }
 
@@ -4451,7 +4448,7 @@ int GModel::readOCCSTEP(const std::string &fn)
 
   if (CTX::instance()->geom.occImportColors) {
     Msg::Info("Importing colors from %s...", fn.c_str());
-    _occ_internals->importColors("step");
+    _occ_internals->importColors(fn, "step");
   }
   // TODO add importMaterials stuff
   // if (CTX::instance()->geom.occImportMaterialsAsPhysicalGroups) {

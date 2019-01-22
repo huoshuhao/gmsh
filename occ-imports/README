@@ -1,0 +1,89 @@
+>>> Notes on the ongoing STEP file colour & material import work - Max Orok, 2019
+
+>> Overview
+
+The first goal is to get colour imports working. Then, we move to material imports
+For the most part, any statements about colour imports also apply to material imports
+
+Clients should be able to import either colours or materials without requiring the other
+The default should be neither (?)
+
+The main files we're working on are Geo/GModelIO_OCC.h and *.cpp, specifically
+the following functions:
+
+- importShapes(4), an existing function we're editing
+- importColors(2)
+- [ eventually, a new function importMaterials(2) ]
+
+The folder gmsh/occ-imports will be used for keeping the step files in source
+control during testing but will be deleted after we get imports working.
+
+>> The setup
+
+There are two minimal STEP assembly files from Inventor that we're using.
+- two_colours.stp is an assembly with the colours DEEPSKYBLUE3 and MAGENTA3
+- two_materials.stp has the materials
+
+The test runs are in a build directory (I'm using build/runs as a test folder).
+After (re-) building gmsh with make && make install, we're ready to test the imports.
+
+The commands I've been using are saved in the test-commands.txt file.
+Right now I do 'cat test-commands.txt' and copy-paste the test I want to run to the terminal.
+
+There is an example run with literal output at the end of this file.
+
+>> Known bugs
+
+Colour imports seem to be breaking the demos/boolean/merged.brep test case,
+so the CI on GitLab will fail.
+- we will have to edit this test to make sure it works with the new changes.
+
+Other functionality tests should be added after colours and materials get up
+and running.
+
+C++11 features will fail CI on the linux-98 box, so I've been tagging code that
+could use C++11 with the string // TODO C++11 (h/t Darcy Beurle)
+
+>> Example run for colour imports with literal output
+
+$ cd ~/gmsh/build/runs
+
+$ gmsh -v 10 -open two_colours.stp
+
+Info    : Running 'gmsh -v 10 -open two_colours.stp' [Gmsh 4.0.1-git-3219b1a, 1 node, max. 1 thread]
+Info    : Started on Tue Jan 22 15:01:11 2019
+Info    : Reading 'two_colours.stp'...
+Report : 6 unknown entities.
+Info    : 0:1   NOT imported; NOT modified; NO attribute modified; has 2 attributes.
+        TDataStd_TreeNode       Trans. 0; Valid;        ID = efd212eb-6dfd-11d4-b9c8-0060b0ee281b
+        XCAFDoc_DocumentTool    Trans. 0; Valid;        ID = efd212ec-6dfd-11d4-b9c8-0060b0ee281b
+Info    : step shape 1
+Info    : shape named: colour_test_assembly
+Info    : an assembly with 2 children
+Info    : step shape 2
+Info    : shape named: colour_test
+Info    : step shape 3
+Info    : shape named: colour_test_2
+Info    : step shape 1
+Info    : step shape 2
+Info    : Colour [ 2 ] = MAGENTA3  : (224,0,201)
+Info    : step shape 3
+Info    : Colour [ 3 ] = DEEPSKYBLUE3  : (0,153,204)
+Info    : Number of colours in STEP File: 2
+Info    : Colour [ 1 ] = MAGENTA3  : (224,0,201)
+Info    : 0:1:2:1       NOT imported; NOT modified; NO attribute modified; has 3 attributes.
+        TDataStd_TreeNode       Trans. 0; Valid;        ID = efd212e5-6dfd-11d4-b9c8-0060b0ee281b
+        TDataStd_Name   Trans. 0; Valid;        ID = 2a96b608-ec8b-11d0-bee7-080009dc3333
+        XCAFDoc_Color   Trans. 0; Valid;        ID = efd212f0-6dfd-11d4-b9c8-0060b0ee281b
+Info    : Colour [ 2 ] = DEEPSKYBLUE3  : (0,153,204)
+Info    : 0:1:2:2       NOT imported; NOT modified; NO attribute modified; has 3 attributes.
+        TDataStd_TreeNode       Trans. 0; Valid;        ID = efd212e5-6dfd-11d4-b9c8-0060b0ee281b
+        TDataStd_Name   Trans. 0; Valid;        ID = 2a96b608-ec8b-11d0-bee7-080009dc3333
+        XCAFDoc_Color   Trans. 0; Valid;        ID = efd212f0-6dfd-11d4-b9c8-0060b0ee281b
+Info    :
+Info    : Number of materials in STEP File: 2
+Info    : material name: Gold
+Info    : material name: Gold
+Info    : Done reading 'two_colours.stp'
+Info    : Stopped on Tue Jan 22 15:01:11 2019
+Info    : No current model available: creating one

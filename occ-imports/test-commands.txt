@@ -1,0 +1,5 @@
+# command to test colours
+gmsh -v 10 -open two_colours.stp
+
+# command to test for materials
+gmsh -v 10 -open two_materials.stp

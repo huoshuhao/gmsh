@@ -333,7 +333,7 @@ public:
                     std::vector<std::pair<int, int> > &outDimTags);
 
   // import colours from file
-  bool importColors(const std::string &format = "");
+  bool importColors(const std::string &fileName, const std::string &format = "");
 
   // export all bound shapes to file
   bool exportShapes(const std::string &fileName,
@@ -665,7 +665,7 @@ public:
   {
     return _error("import shape");
   }
-  bool importColors(const std::string &format = "")
+  bool importColors(const std::string &fileName, const std::string &format = "")
   {
     return _error("import color");
   }
