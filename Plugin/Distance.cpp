@@ -208,7 +208,8 @@ PView *GMSH_DistancePlugin::execute(PView *v)
 
   std::vector<GEntity *> _entities;
   GModel::current()->getEntities(_entities);
-  if(!_entities.size() || !_entities[_entities.size() - 1]->getMeshElement(0)) {
+  if (_entities.empty() ||
+      !_entities[_entities.size() - 1]->getMeshElement(0)) {
     Msg::Error("This plugin needs a mesh!");
     return view;
   }

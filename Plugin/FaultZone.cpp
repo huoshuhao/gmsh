@@ -101,7 +101,7 @@ PView *GMSH_FaultZonePlugin::execute(PView *view)
     return view;
   }
 
-  if(!gFace->embeddedEdges().size()) {
+  if (gFace->embeddedEdges().empty()) {
     Msg::Error("No line to treat in this surface");
     return view;
   }

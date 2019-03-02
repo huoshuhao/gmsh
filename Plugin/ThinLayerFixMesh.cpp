@@ -181,21 +181,21 @@ void GMSH_ThinLayerFixMeshPlugin::checkOppositeTriangles()
         test2 = true;
       }
       if(it2 != VertexToCorresp.end()) {
-        if((*it2).second.size() > 0) {
+        if (!(*it2).second.empty()) {
           if((*it2).second[0]->getActive()) {
             test0 = true;
           }
         }
       }
       if(it3 != VertexToCorresp.end()) {
-        if((*it3).second.size() > 0) {
+        if (!(*it3).second.empty()) {
           if((*it3).second[0]->getActive()) {
             test1 = true;
           }
         }
       }
       if(it4 != VertexToCorresp.end()) {
-        if((*it4).second.size() > 0) {
+        if (!(*it4).second.empty()) {
           if((*it4).second[0]->getActive()) {
             test2 = true;
           }
@@ -238,7 +238,7 @@ void GMSH_ThinLayerFixMeshPlugin::fillvecOfThinSheets()
                     it2 = VertexToCorresp.find(
                       (*it1).second[i]->getEndTrianglePoint1());
                   if(it2 != VertexToCorresp.end()) {
-                    if((*it2).second.size() > 0) {
+                    if (!(*it2).second.empty()) {
                       if((*it1)
                            .second[i]
                            ->getEndTrianglePoint1()
@@ -252,7 +252,7 @@ void GMSH_ThinLayerFixMeshPlugin::fillvecOfThinSheets()
                   it2 = VertexToCorresp.find(
                     (*it1).second[i]->getEndTrianglePoint2());
                   if(it2 != VertexToCorresp.end()) {
-                    if((*it2).second.size() > 0) {
+                    if (!(*it2).second.empty()) {
                       if((*it1)
                            .second[i]
                            ->getEndTrianglePoint2()
@@ -266,7 +266,7 @@ void GMSH_ThinLayerFixMeshPlugin::fillvecOfThinSheets()
                   it2 = VertexToCorresp.find(
                     (*it1).second[i]->getEndTrianglePoint3());
                   if(it2 != VertexToCorresp.end()) {
-                    if((*it2).second.size() > 0) {
+                    if (!(*it2).second.empty()) {
                       if((*it1)
                            .second[i]
                            ->getEndTrianglePoint3()
@@ -282,7 +282,7 @@ void GMSH_ThinLayerFixMeshPlugin::fillvecOfThinSheets()
                 std::set<MVertex *> CurrentSheet;
                 CurrentSheet.clear();
                 CurrentSheet.insert((*it1).second[i]->getStartPoint());
-                while(CurrentSheet.size() != 0) {
+                while (!CurrentSheet.empty()) {
                   MVertex *VToDo = (*CurrentSheet.begin());
                   std::vector<MTetrahedron *> surroundingTet =
                     VertexToTets[VToDo];
@@ -297,7 +297,7 @@ void GMSH_ThinLayerFixMeshPlugin::fillvecOfThinSheets()
                          VToDo->onWhat()->tag()) { // TODO: OR that onwhat ->
                                                    // dim <, for edges
                         if(it2 != VertexToCorresp.end()) {
-                          if((*it2).second.size() > 0) {
+                          if (!(*it2).second.empty()) {
                             CorrespVerticesFixMesh *correspToInsert =
                               ((*it2).second)[0];
                             if(correspToInsert->getStartPoint()
@@ -326,7 +326,7 @@ void GMSH_ThinLayerFixMeshPlugin::fillvecOfThinSheets()
                                               .second[0]
                                               ->getEndTrianglePoint1());
                                         if(it3 != VertexToCorresp.end()) {
-                                          if((*it3).second.size() > 0) {
+                                          if (!(*it3).second.empty()) {
                                             if((*it2)
                                                  .second[0]
                                                  ->getEndTrianglePoint1()
@@ -346,7 +346,7 @@ void GMSH_ThinLayerFixMeshPlugin::fillvecOfThinSheets()
                                             .second[0]
                                             ->getEndTrianglePoint2());
                                         if(it3 != VertexToCorresp.end()) {
-                                          if((*it3).second.size() > 0) {
+                                          if (!(*it3).second.empty()) {
                                             if((*it2)
                                                  .second[0]
                                                  ->getEndTrianglePoint2()
@@ -366,7 +366,7 @@ void GMSH_ThinLayerFixMeshPlugin::fillvecOfThinSheets()
                                             .second[0]
                                             ->getEndTrianglePoint3());
                                         if(it3 != VertexToCorresp.end()) {
-                                          if((*it3).second.size() > 0) {
+                                          if (!(*it3).second.empty()) {
                                             if((*it2)
                                                  .second[0]
                                                  ->getEndTrianglePoint3()
